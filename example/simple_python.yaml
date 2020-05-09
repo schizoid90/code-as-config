@@ -1,0 +1,12 @@
+language: 'python'
+code:
+  MyClass:
+    init:
+      vars:
+        self.h: 'hello'
+        self.w: 'world'
+    print_out:
+      vars:
+        out: 'self.h self.w'
+      code:
+        print: 'out'
