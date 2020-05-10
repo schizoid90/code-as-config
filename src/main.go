@@ -12,13 +12,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var (
-	outfile *string
-)
-
 func main(){
 	infile := flag.String("file", "", "YAML file to read")
-	outfile = flag.String("out", "output.txt", "File to create")
 	flag.Parse()
 
 	codeconf, _ := filepath.Abs(*infile)
@@ -27,8 +22,11 @@ func main(){
 
 	contents := readYaml(yamlFile)
 
+	if (contents.Version  != "v1"){
+		fail := fmt.Sprintf("Error: version %s not recognised", contents.Version)
+		panic(fail)
+	}
 
-	fmt.Printf("--- t:\n%v\n\n", contents)
 	if (contents.Language == "python") {
 		p.Run(contents)
 	}

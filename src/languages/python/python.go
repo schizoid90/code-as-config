@@ -9,61 +9,49 @@ import (
 
 func Run(config c.YamlCode) {
 	fmt.Println("Run python")
-	file, err := os.Create("out.py")
+	outfile := fmt.Sprintf("%s.py", config.Name)
+	file, err := os.Create(outfile)
 	c.ChkErr(err)
 	defer file.Close()
-	for class, c := range config.YamlContent.(map[interface{}]interface{}) {
-		WriteClass(file, class, c)
-		fmt.Println(class)
-		for f, v := range c.(map[interface{}]interface{}) {
-			fmt.Println("\t", f)
-			for l, d := range v.(map[interface{}]interface{}) {
-				fmt.Println("\t\t", l)
-				for g, s:= range d.(map[interface{}]interface{}) {
-					fmt.Println("\t\t\t", g, ": ", s)
-				}
-			}
-		}
+	class := config.Spec.Class
+	WriteClass(file, class)
+	for _, v := range config.Spec.Functions {
+		WriteFunc(file, v)
+	}
+
+	fmt.Println(config.Spec.RunMain)
+	if (config.Spec.RunMain != "") {
+		WriteMain(file, config)
 	}
 }
 
-func WriteClass(file *os.File, class, c interface{}) {
+func WriteClass(file *os.File, class string) {
+
 	cl := fmt.Sprintf("class %s:\n", class)
 	file.WriteString(cl)
-	fmt.Println(cl)
-	for f, v := range c.(map[interface{}]interface{}) {
-		WriteFunc(file, f, v)
-	}
 }
 
-func WriteFunc(file *os.File, fnc, v interface{}) {
-	fn := fmt.Sprintf("\tdef %s(self):\n", fnc)
-	file.WriteString(fn)
-	fmt.Println(fn)
-	for cb, d := range v.(map[interface{}]interface{}) {
-		if (cb == "vars") {
-		}
-		switch cb {
-		case "vars":
-			for k, v := range d.(map[interface{}]interface{}) {
-				WriteVar(file, k, v)
-			}
-		case "code":
-			for k, v := range d.(map[interface{}]interface{}) {
-				WriteCommands(file, k, v)
-			}
-		}
-		fmt.Println(cb)
+func WriteFunc(file *os.File, fnc c.Functions){
+	funcName := fmt.Sprintf("\tdef %s(self):\n", fnc.Name)
+	file.WriteString(funcName)
+
+	for k, v := range fnc.Vars {
+		setVar := fmt.Sprintf("\t\t%v = %v\n", k, v)
+		file.WriteString(setVar)
+	}
+
+	for c, o := range fnc.Code {
+		writeCode := fmt.Sprintf("\t\t%v(%v)\n", c, o)
+		file.WriteString(writeCode)
 	}
 }
 	
-func WriteVar(file *os.File, key, variable interface{}) {
-	block := fmt.Sprintf("\t\t%s = \"%s\"\n", key, variable)
-	file.WriteString(block)
-	fmt.Println(block)
-}
+func WriteMain(file *os.File, code c.YamlCode) {
+	writeMain := fmt.Sprintf(`
+if __name__ == '__main__':
+	main = %s()
+	main.%s()`, code.Spec.Class, code.Spec.RunMain)
 
-func WriteCommands(file *os.File, cmd, arg interface{}) {
-	block := fmt.Sprintf("\t\t%s(%s)", cmd, arg)
-	file.WriteString(block)
+	fmt.Println(writeMain)
+	file.WriteString(writeMain)
 }

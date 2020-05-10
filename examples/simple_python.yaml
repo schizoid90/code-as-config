@@ -1,0 +1,24 @@
+version: "v1"
+language: "python"
+name: "hello-world"
+spec:
+  class: "MyClass"
+  runMain: "print_out"
+  functions:
+  - name: "__init__"
+    vars:
+      self.h: '"hello"'
+      self.w: '"world"'
+  - name: "print_out"
+    vars:
+      out: '"%s %s" %(self.h, self.w)'
+    code:
+      print: 'out'
+    options:
+      a: ""
+  - name: adding
+    vars:
+      fst: 4
+      scnd: 5
+    code:
+      print: 'fst + scnd'
